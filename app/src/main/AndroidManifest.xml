@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.kad.umengapplication">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!--umeng配置信息-->
+        <meta-data
+            android:name="UMENG_APP_KEY"
+            android:value="5a2756eab27b0a46ab00012f" />
+        <!-- Channel ID用来标识App的推广渠道，作为推送消息时给用户分组的一个维度。-->
+        <meta-data
+            android:name="UMENG_CHANNEL"
+            android:value="kad" />
+        <!--是否使用推送模块-->
+        <meta-data
+            android:name="ENABLE_PUSH"
+            android:value="TRUE" />
+        <!--是否使用统计模块-->
+        <meta-data
+            android:name="ENABLE_ANALYTICS"
+            android:value="TRUE" />
+
+        <!--推送消息UMENG_MESSAGE_SECRET-->
+        <meta-data
+            android:name="UMENG_MESSAGE_SECRET"
+            android:value="431535565011d368ceac3c1d483dc6ba" />
+    </application>
+
+</manifest>
