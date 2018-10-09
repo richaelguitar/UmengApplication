@@ -4,20 +4,24 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.util.Log;
 
 import com.kad.kumeng.callback.IPushReceiverMessageCallback;
 import com.kad.kumeng.callback.IPushRegisterCallback;
 import com.kad.kumeng.callback.KTagCallback;
 import com.kad.kumeng.entity.KMessage;
 import com.kad.kumeng.exception.UmengIsNotInitException;
-import com.kad.kumeng.service.KNotificationService;
 import com.kad.kumeng.service.KPushService;
 import com.kad.kumeng.utils.KUmengUtils;
 import com.umeng.commonsdk.UMConfigure;
 import com.umeng.message.IUmengRegisterCallback;
 import com.umeng.message.PushAgent;
 import com.umeng.message.UTrack;
+import com.umeng.message.entity.UMessage;
 import com.umeng.message.tag.TagManager;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,13 +37,11 @@ public class KPushManager {
 
     public static final String PUSH_RECEIVER_MESSAGE_ACTION = "com.kad.kumeng.service.KPushBroadcastReceiver.action";
 
-    public static final String EXTRA_KEY_ACTION = "ACTION";
 
     public static final String ACTION_CLICK = "click";
 
     public static final String ACTION_DISMISS = "dismiss";
 
-    public static final int EXTRA_ACTION_NOT_EXIST = -1;
 
     private IPushRegisterCallback pushRegisterCallback;//push推送注册回调
 
@@ -56,6 +58,7 @@ public class KPushManager {
 
     public KPushManager(Context context){
         this.mContext = context;
+        isInit = true;
         initMessageReceiver();
     }
 
@@ -72,33 +75,6 @@ public class KPushManager {
     }
 
     /**
-     * umeng推送功能初始化
-     * 适合在代码里面动态设置appkey,channel
-     * @param context
-     * @param appkey
-     * @param channel
-     * @param deviceType
-     * @param pushSecret
-     */
-    public  void init(Context context, String appkey, String channel, int deviceType, String pushSecret) throws Exception {
-        UMConfigure.init(context,appkey,channel,deviceType,pushSecret);
-        isInit = true;
-        register(context);
-    }
-
-    /**
-     * umeng推送功能初始化
-     * 适合在AndroidManifest.xml中设置appkey,channel
-     * @param context
-     * @param deviceType
-     * @param pushSecret
-     */
-    public  void init(Context context, int deviceType, String pushSecret) throws Exception {
-
-        init(context, KUmengUtils.getAndroidManifestMetaData(context,"UMENG_APPKEY"),KUmengUtils.getAndroidManifestMetaData(context,"UMENG_CHANNEL"),deviceType,pushSecret);
-    }
-
-    /**
      * 注册推送服务
      * @param context
      */
@@ -106,6 +82,7 @@ public class KPushManager {
         if(isInit){
             mPushAgent = PushAgent.getInstance(context);
             mPushAgent.register(umengRegisterCallback);
+            Log.d(getClass().getSimpleName(),"---register---");
             mPushAgent.setPushIntentServiceClass(KPushService.class);
         }else{
             throw new UmengIsNotInitException("请先调用KUmengUtils.getInstance(context).init进行初始化后再进行注册");
@@ -179,6 +156,18 @@ public class KPushManager {
         }
     }
 
+    /**
+     * 设置现在通知数量
+     * 范围0-10
+     * 当number为0的时候表示通知不合并
+     * @param number
+     */
+    public void setDisplayNotificationNumber(int number){
+        if(mPushAgent!=null){
+            mPushAgent.setDisplayNotificationNumber(number);
+        }
+    }
+
 
     /**
      * 获取服务器所有Tags
@@ -205,19 +194,27 @@ public class KPushManager {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            KMessage kMessage = (KMessage) intent.getSerializableExtra(PUSH_MESSAGE);
-            if(PUSH_RECEIVER_MESSAGE_ACTION.equals(action)){
-                if(pushReceiverMessageCallback!=null){
-                    pushReceiverMessageCallback.receiverMsg(kMessage);
-                }
+            String message = intent.getStringExtra(PUSH_MESSAGE);
+            KMessage kMessage = null;
+            UMessage uMessage = null;
+            try {
+                uMessage = new UMessage(new JSONObject(message));
+                kMessage = new KMessage(new JSONObject(message));
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
 
             switch (action){
+
+                case PUSH_RECEIVER_MESSAGE_ACTION:
+                    if(pushReceiverMessageCallback!=null){
+                        pushReceiverMessageCallback.receiverMsg(kMessage);
+                    }
+                    break;
                 case ACTION_CLICK:
                     //手动统计点击
                     UTrack.getInstance(mContext).setClearPrevMessage(true);
-                    KNotificationService.oldMessage = null;
-                    UTrack.getInstance(context).trackMsgClick(kMessage);
+                    UTrack.getInstance(context).trackMsgClick(uMessage);
                     if(pushReceiverMessageCallback!=null){
                         pushReceiverMessageCallback.go(mContext,kMessage);
                     }
@@ -225,7 +222,7 @@ public class KPushManager {
                 case ACTION_DISMISS:
                     //手动统计忽略
                     UTrack.getInstance(context).setClearPrevMessage(true);
-                    UTrack.getInstance(context).trackMsgDismissed(kMessage);
+                    UTrack.getInstance(context).trackMsgDismissed(uMessage);
                     break;
             }
         }
@@ -240,6 +237,8 @@ public class KPushManager {
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(PUSH_RECEIVER_MESSAGE_ACTION);
+        intentFilter.addAction(KPushManager.ACTION_CLICK);
+        intentFilter.addAction(KPushManager.ACTION_DISMISS);
         kPushBroadcastReceiver = new KPushBroadcastReceiver();
         if(mContext!=null){
            mContext.registerReceiver(kPushBroadcastReceiver,intentFilter);

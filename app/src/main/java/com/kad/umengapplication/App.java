@@ -1,22 +1,21 @@
 package com.kad.umengapplication;
 
 import android.app.Application;
-import android.content.Context;
-
 import com.kad.kumeng.utils.KUmengUtils;
+import com.kad.umengapplication.push.KPushRegisterCallback;
+import com.kad.umengapplication.push.PushReceiverMessageCallbackImp;
 
 public class App extends Application {
-
-    @Override
-    protected void attachBaseContext(Context base) {
-        super.attachBaseContext(base);
-    }
 
     @Override
     public void onCreate() {
         super.onCreate();
         try {
-            KUmengUtils.getInstance(this).init();
+            KUmengUtils.with(this)
+                .enabledUmengLog(BuildConfig.DEBUG)
+                .setPushRegisterCallback(new KPushRegisterCallback())
+                .setPushReceiverMessageCallback(new PushReceiverMessageCallbackImp())
+                .init();
         } catch (Exception e) {
             e.printStackTrace();
         }

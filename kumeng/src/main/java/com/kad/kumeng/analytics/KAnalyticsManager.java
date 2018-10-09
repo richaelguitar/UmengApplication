@@ -20,8 +20,5 @@ public class KAnalyticsManager {
 
     }
 
-    public void  init(){
-
-    }
 
 }

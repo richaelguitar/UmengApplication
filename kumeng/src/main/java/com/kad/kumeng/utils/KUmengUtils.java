@@ -5,14 +5,18 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.text.TextUtils;
 
+import com.kad.kumeng.BuildConfig;
 import com.kad.kumeng.analytics.KAnalyticsManager;
 import com.kad.kumeng.callback.IPushReceiverMessageCallback;
 import com.kad.kumeng.callback.IPushRegisterCallback;
 import com.kad.kumeng.callback.KTagCallback;
 import com.kad.kumeng.push.KPushManager;
+import com.umeng.commonsdk.UMConfigure;
 import com.umeng.message.PushAgent;
 
 import java.util.List;
+
+import static com.umeng.commonsdk.UMConfigure.DEVICE_TYPE_PHONE;
 
 /**
  * 友盟统计模块与推送模块工具类
@@ -24,7 +28,7 @@ public class KUmengUtils {
     public static  final String UMENG_CHANNEL="kad";
     public static  final String UMENG_MESSAGE_SECRET="431535565011d368ceac3c1d483dc6ba";
 
-    public static  int deviceType=0;
+    public static  int deviceType=DEVICE_TYPE_PHONE;
 
     private String messageSecret=UMENG_MESSAGE_SECRET;
 
@@ -39,6 +43,7 @@ public class KUmengUtils {
     private KAnalyticsManager kAnalyticsManager;
 
 
+
     private KUmengUtils(Context context){
         this.mContext = context;
         initConfig();
@@ -50,8 +55,8 @@ public class KUmengUtils {
      */
     private void initConfig() {
 
-        isEnableAnalytics = Boolean.getBoolean(getAndroidManifestMetaData(mContext,"ENABLE_PUSH"));
-        isEnablePush = Boolean.getBoolean(getAndroidManifestMetaData(mContext,"ENABLE_ANALYTICS"));
+        isEnableAnalytics = (Boolean)getAndroidManifestMetaData(mContext,"ENABLE_PUSH");
+        isEnablePush = (Boolean)getAndroidManifestMetaData(mContext,"ENABLE_ANALYTICS");
 
         if(isEnableAnalytics){
             kAnalyticsManager = new KAnalyticsManager(mContext);
@@ -67,7 +72,7 @@ public class KUmengUtils {
      * @param context
      * @return
      */
-    public static KUmengUtils getInstance(Context context){
+    public static KUmengUtils with(Context context){
 
         if(kUmengUtils== null){
             synchronized (KUmengUtils.class){
@@ -81,18 +86,61 @@ public class KUmengUtils {
     }
 
     /**
+     * 开启日志
+     * @param enable
+     */
+    public KUmengUtils enabledUmengLog(boolean enable){
+        UMConfigure.setLogEnabled(true);
+        return  this;
+    }
+
+    /**
      * umeng模块初始化
      */
-    public  void init() throws Exception {
+    public  KUmengUtils init() throws Exception {
 
+        if(TextUtils.isEmpty(messageSecret)){
+            messageSecret = (String)getAndroidManifestMetaData(mContext,"UMENG_MESSAGE_SECRET");
+        }
+        init(mContext,deviceType,messageSecret);
+        return this;
+    }
+
+
+    /**
+     * umeng初始化
+     * 适合在代码里面动态设置appkey,channel
+     * @param context
+     * @param appkey
+     * @param channel
+     * @param deviceType
+     * @param pushSecret
+     */
+    public  KUmengUtils init(Context context, String appkey, String channel, int deviceType, String pushSecret) throws Exception {
+
+        UMConfigure.init(context,appkey,channel,deviceType,pushSecret);
+        //注册统计
         if(isEnableAnalytics){
-            kAnalyticsManager.init();
+            kAnalyticsManager.register();
+        }
+        //注册推送
+        if(isEnablePush){
+            kPushManager.register(mContext);
         }
 
-        if(isEnablePush){
-            messageSecret = getAndroidManifestMetaData(mContext,"UMENG_MESSAGE_SECRET");
-            kPushManager.init(mContext,deviceType,messageSecret);
-        }
+        return this;
+    }
+
+    /**
+     * umeng功能初始化
+     * 适合在AndroidManifest.xml中设置appkey,channel
+     * @param context
+     * @param deviceType
+     * @param pushSecret
+     */
+    public  KUmengUtils init(Context context, int deviceType, String pushSecret) throws Exception {
+        init(context, (String)KUmengUtils.getAndroidManifestMetaData(context,"UMENG_APP_KEY"),(String)KUmengUtils.getAndroidManifestMetaData(context,"UMENG_CHANNEL"),deviceType,pushSecret);
+        return this;
     }
 
 
@@ -100,20 +148,24 @@ public class KUmengUtils {
      * 设置push推送模块注册回调
      * @param pushRegisterCallback
      */
-    public void setPushRegisterCallback(IPushRegisterCallback pushRegisterCallback) {
+    public KUmengUtils setPushRegisterCallback(IPushRegisterCallback pushRegisterCallback) {
         if(kPushManager!=null){
             kPushManager.setPushRegisterCallback(pushRegisterCallback);
         }
+
+        return this;
     }
 
     /**
      * 设置push推送模块接受消息回调
      * @param pushReceiverMessageCallback
      */
-    public void setPushReceiverMessageCallback(IPushReceiverMessageCallback pushReceiverMessageCallback) {
+    public KUmengUtils setPushReceiverMessageCallback(IPushReceiverMessageCallback pushReceiverMessageCallback) {
         if(kPushManager!=null){
             kPushManager.setPushReceiverMessageCallback(pushReceiverMessageCallback);
         }
+
+        return this;
     }
 
 
@@ -124,23 +176,23 @@ public class KUmengUtils {
      * @param key
      * @return
      */
-    public static   String getAndroidManifestMetaData(Context context,String key){
+    public static   Object getAndroidManifestMetaData(Context context,String key){
         ApplicationInfo applicationInfo = null;
-        String value = "";
+        Object value = null;
         try {
             applicationInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
-            value= applicationInfo.metaData.getString(key);
+            value= applicationInfo.metaData.get(key);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
 
-        switch (key){
+        switch (key.toUpperCase()){
             case "UMENG_APP_KEY":
-                 if(TextUtils.isEmpty(value)){
+                 if(TextUtils.isEmpty((String)value)){
                      return UMENG_APP_KEY;
                  }
             case "UMENG_CHANNEL":
-                if(TextUtils.isEmpty(value)){
+                if(TextUtils.isEmpty((String)value)){
                     return UMENG_CHANNEL;
                 }
                 break;
@@ -202,7 +254,9 @@ public class KUmengUtils {
         return null;
     }
 
-
-
-
+    public void onAppStart(){
+        if(kPushManager!=null){
+            kPushManager.getPushAgent().onAppStart();
+        }
+    }
 }
