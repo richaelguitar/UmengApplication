@@ -7,19 +7,24 @@ public class ViewModuleActivity extends BaseActivity {
 
 
     @Override
-    protected int getLayoutId() {
+    public int getLayoutId() {
         return R.layout.view_module_activity;
     }
 
     @Override
-    protected void initView() {
+    public void initView() {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.container, ViewModuleFragment.newInstance(getIntent().getStringExtra(ViewModuleFragment.PARAM_ARG)))
                 .commitNow();
     }
 
     @Override
-    protected void initData() {
+    public void initData() {
 
+    }
+
+    @Override
+    public String getPageName() {
+        return ViewModuleActivity.class.getName();
     }
 }

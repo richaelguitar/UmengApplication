@@ -10,9 +10,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.kad.umengapplication.BaseFragment;
 import com.kad.umengapplication.R;
 
-public class ViewModuleFragment extends Fragment {
+public class ViewModuleFragment extends BaseFragment {
 
     private ViewModuleViewModel mViewModel;
     public static final String PARAM_ARG = "TEXT";
@@ -25,22 +26,27 @@ public class ViewModuleFragment extends Fragment {
         return fragment;
     }
 
-
-
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.view_module_fragment, container, false);
+    public int getLayoutId() {
+        return R.layout.view_module_fragment;
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void initView(View rootView) {
+
+    }
+
+    @Override
+    public void initData() {
         mViewModel = ViewModelProviders.of(this).get(ViewModuleViewModel.class);
         // TODO: Use the ViewModel
         String content = getArguments().getString(PARAM_ARG,"妈卖批");
         Toast.makeText(getActivity(),"content="+content,Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public String getPageName() {
+        return ViewModuleFragment.class.getName();
     }
 
 }

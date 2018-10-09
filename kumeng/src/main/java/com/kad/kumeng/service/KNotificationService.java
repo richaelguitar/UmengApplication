@@ -126,7 +126,7 @@ public class KNotificationService extends Service {
         manager.notify(id, notification);
     }
 
-    @TargetApi(26)
+    @TargetApi(Build.VERSION_CODES.O)
     private NotificationChannel createNotificationChannel(String channelId,String channelName){
         NotificationChannel channel = new NotificationChannel(channelId,channelName,NotificationManager.IMPORTANCE_DEFAULT);
         channel.setLightColor(Color.RED);//设置小红点颜色

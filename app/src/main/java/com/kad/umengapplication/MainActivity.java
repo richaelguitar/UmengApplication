@@ -5,17 +5,22 @@ public class MainActivity extends BaseActivity {
 
 
     @Override
-    protected int getLayoutId() {
+    public int getLayoutId() {
         return R.layout.activity_main;
     }
 
     @Override
-    protected void initView() {
+    public void initView() {
 
     }
 
     @Override
-    protected void initData() {
+    public void initData() {
 
+    }
+
+    @Override
+    public String getPageName() {
+        return  MainActivity.class.getName();
     }
 }

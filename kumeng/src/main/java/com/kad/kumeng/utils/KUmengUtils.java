@@ -259,4 +259,38 @@ public class KUmengUtils {
             kPushManager.getPushAgent().onAppStart();
         }
     }
+
+    /*===================================================app统计模块====================================================*/
+
+    public KUmengUtils onResume(Context context){
+        if(kAnalyticsManager!=null){
+            kAnalyticsManager.onResume(context);
+        }
+
+        return this;
+    }
+
+    public KUmengUtils onPause(Context context){
+        if(kAnalyticsManager!=null){
+            kAnalyticsManager.onPause(context);
+        }
+
+        return this;
+    }
+
+    public KUmengUtils onPageStart(String viewName){
+        if(kAnalyticsManager!=null){
+            kAnalyticsManager.onPageStart(viewName);
+        }
+
+        return this;
+    }
+
+    public KUmengUtils onPageEnd(String viewName){
+        if(kAnalyticsManager!=null){
+            kAnalyticsManager.onPageEnd(viewName);
+        }
+
+        return this;
+    }
 }

@@ -8,16 +8,39 @@ import com.kad.kumeng.utils.KUmengUtils;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
+
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(getLayoutId());
+
         KUmengUtils.with(this).onAppStart();
         initView();
         initData();
     }
 
-    protected abstract int getLayoutId();
-    protected abstract void initView();
-    protected abstract void initData();
+    public abstract int getLayoutId();
+    public abstract void initView();
+    public abstract void initData();
+
+    public abstract String getPageName();
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        KUmengUtils.with(this)
+                .onPageStart(getPageName())//1、统计页面路径
+                .onResume(this);//2、统计页面时长
+
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        KUmengUtils.with(this)
+                .onPageEnd(getPageName())//1、统计页面路径
+                .onPause(this);//2、统计页面时长
+    }
 }
