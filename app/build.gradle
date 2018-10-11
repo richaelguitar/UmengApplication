@@ -1,6 +1,17 @@
 apply plugin: 'com.android.application'
 
 android {
+
+    signingConfigs {
+        kadapp {
+            keyAlias 'android-release-key.keystore'
+            keyPassword project.property('keyPassword')
+            storeFile file(project.property('storeFile_path'))
+            storePassword project.property('storePassword')
+            v2SigningEnabled true
+        }
+    }
+
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.kad.umengapplication"
@@ -8,6 +19,7 @@ android {
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
+        signingConfig signingConfigs.kadapp
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     sourceSets {
@@ -17,7 +29,7 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.kad.kumeng.BuildConfig;
 import com.kad.kumeng.analytics.KAnalyticsManager;
@@ -14,7 +15,9 @@ import com.kad.kumeng.push.KPushManager;
 import com.umeng.commonsdk.UMConfigure;
 import com.umeng.message.PushAgent;
 
+import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 
 import static com.umeng.commonsdk.UMConfigure.DEVICE_TYPE_PHONE;
 
@@ -24,9 +27,9 @@ import static com.umeng.commonsdk.UMConfigure.DEVICE_TYPE_PHONE;
 public class KUmengUtils {
 
     private Context mContext;
-    public static  final String UMENG_APP_KEY="5a2756eab27b0a46ab00012f";
+    public static  final String UMENG_APP_KEY="5bbec64eb465f553d000014d";
     public static  final String UMENG_CHANNEL="kad";
-    public static  final String UMENG_MESSAGE_SECRET="431535565011d368ceac3c1d483dc6ba";
+    public static  final String UMENG_MESSAGE_SECRET="be95300943f56a73181d19b1d1d7211a";
 
     public static  int deviceType=DEVICE_TYPE_PHONE;
 
@@ -139,7 +142,7 @@ public class KUmengUtils {
      * @param pushSecret
      */
     public  KUmengUtils init(Context context, int deviceType, String pushSecret) throws Exception {
-        init(context, (String)KUmengUtils.getAndroidManifestMetaData(context,"UMENG_APP_KEY"),(String)KUmengUtils.getAndroidManifestMetaData(context,"UMENG_CHANNEL"),deviceType,pushSecret);
+        init(context, (String)KUmengUtils.getAndroidManifestMetaData(context,"UMENG_APP_KEY"),KUmengUtils.getChannelName(context),deviceType,pushSecret);
         return this;
     }
 
@@ -166,6 +169,23 @@ public class KUmengUtils {
         }
 
         return this;
+    }
+
+
+
+
+    private static String getChannelName(Context context) {
+        String channel = "";
+
+        try {
+            Class walleChannelReaderClass = Class.forName("com.meituan.android.walle.WalleChannelReader");
+            Method getChannelMethod = walleChannelReaderClass.getMethod("getChannel", Context.class);
+            channel = (String)getChannelMethod.invoke(walleChannelReaderClass, context);
+        } catch (Exception var4) {
+            var4.printStackTrace();
+        }
+
+        return !TextUtils.isEmpty(channel) && !channel.equals("null") ? channel : "kad";
     }
 
 
@@ -291,6 +311,35 @@ public class KUmengUtils {
             kAnalyticsManager.onPageEnd(viewName);
         }
 
+        return this;
+    }
+
+
+    public KUmengUtils onEvent(Context context, String eventID){
+        if(kAnalyticsManager!=null){
+            kAnalyticsManager.onEvent(context,eventID);
+        }
+        return this;
+    }
+
+    public KUmengUtils onEvent(Context context, String eventID, String label){
+        if(kAnalyticsManager!=null){
+            kAnalyticsManager.onEvent(context,eventID,label);
+        }
+        return this;
+    }
+
+    public KUmengUtils onEvent(Context context, String eventID, Map<String, String> map){
+        if(kAnalyticsManager!=null){
+            kAnalyticsManager.onEvent(context,eventID,map);
+        }
+        return this;
+    }
+
+    public KUmengUtils onEventValue(Context context, String eventID, Map<String, String> map, int du){
+        if(kAnalyticsManager!=null){
+            kAnalyticsManager.onEventValue(context,eventID,map,du);
+        }
         return this;
     }
 }
