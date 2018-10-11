@@ -20,7 +20,7 @@
         <!-- umeng配置信息 -->
         <meta-data
             android:name="UMENG_APP_KEY"
-            android:value="5bbec64eb465f553d000014d" />
+            android:value="5a2756eab27b0a46ab00012f" />
         <!-- Channel ID用来标识App的推广渠道，作为推送消息时给用户分组的一个维度。 -->
         <meta-data
             android:name="UMENG_CHANNEL"
@@ -37,7 +37,7 @@
         <!-- 推送消息UMENG_MESSAGE_SECRET -->
         <meta-data
             android:name="UMENG_MESSAGE_SECRET"
-            android:value="be95300943f56a73181d19b1d1d7211a" />
+            android:value="431535565011d368ceac3c1d483dc6ba" />
 
         <activity android:name=".ViewModuleActivity"></activity>
     </application>

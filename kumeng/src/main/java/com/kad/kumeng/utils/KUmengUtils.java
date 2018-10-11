@@ -33,8 +33,6 @@ public class KUmengUtils {
 
     public static  int deviceType=DEVICE_TYPE_PHONE;
 
-    private String messageSecret=UMENG_MESSAGE_SECRET;
-
     private   boolean isEnablePush;//是否使用推送模块
 
     private  boolean isEnableAnalytics;//是否使用分析模块
@@ -101,11 +99,13 @@ public class KUmengUtils {
      * umeng模块初始化
      */
     public  KUmengUtils init() throws Exception {
-
-        if(TextUtils.isEmpty(messageSecret)){
-            messageSecret = (String)getAndroidManifestMetaData(mContext,"UMENG_MESSAGE_SECRET");
+       String pushSecret =  (String)getAndroidManifestMetaData(mContext,"UMENG_MESSAGE_SECRET");
+        if(TextUtils.isEmpty(pushSecret)){
+            init(mContext,deviceType,UMENG_MESSAGE_SECRET);
+        }else{
+            init(mContext,deviceType,pushSecret);
         }
-        init(mContext,deviceType,messageSecret);
+
         return this;
     }
 
